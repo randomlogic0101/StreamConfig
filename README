@@ -1,0 +1,24 @@
+# EmacsConfig
+
+Files in EmacsConfig live in ~/.emacs.d and make up the emacs config for the host, and docker container
+
+# DockerConfig
+
+Files in DockerConfig live in ~/.local/src/exwm_config and include the dockerfile and helper scripts for setting up the docker image, and starting the image.
+
+# Workflow
+
+The system has been tested on a NixOS machine with AMD dGPU and AMD CPU running Wayland/Gnome. The docker container runs a paired down version of arch:latest xvfb with exwm.
+
+1. Build the docker container with build_image, and 
+2. launch the container with run_image 
+3. Then connect to the container with VNC of choice
+
+Note: Config directory mounts expect a ~/.dotfiles directory (I mange mine with stow) but shouldn't be required. Check the local dirs for the mounts in run_image and adjust as necessary. 
+
+Some strange details:
+
+1. embedding mpv requires you to run C-c n to create an xterm session first instead of the my/mpv-run-in-exwm managing the whole xwindow cycle for mpv
+2. It's not clear why some xwindow apps require the C-c n xterm to capture but firefox just works.
+3. The whole setup needs some sane keybinds to get the frame to be stable for streaming. For example hitting :wq in an evil buffer will kill the buffer and window instead of dropping you back to an exwm window.
+

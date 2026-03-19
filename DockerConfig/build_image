@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# -------------------------------
+# Configuration
+# -------------------------------
+IMAGE_NAME="exwm-virtual"
+CONTAINER_NAME="exwm_run"
+BUILD_CONTEXT="."                # Dockerfile location
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+USERNAME=$(id -un)
+
+# Useful mounts
+EMACS_DIR="$HOME/.emacs.d"
+DOTFILES_DIR="$HOME/.dotfiles"
+PIPEWIRE_RUNTIME="/run/user/$HOST_UID"
+X11_SOCKET="/tmp/.X11-unix"
+DEV_SND="/dev/snd"
+
+# -------------------------------
+# Stop & remove any running container using this image
+# -------------------------------
+EXISTING_CONTAINER=$(docker ps -q -f "name=$CONTAINER_NAME")
+
+if [ -n "$EXISTING_CONTAINER" ]; then
+    echo "Stopping running container $CONTAINER_NAME ($EXISTING_CONTAINER)..."
+    docker stop "$EXISTING_CONTAINER"
+fi
+
+# -------------------------------
+# Remove any previous image with this name
+# -------------------------------
+if docker images -q "$IMAGE_NAME" >/dev/null 2>&1; then
+    echo "Removing previous image $IMAGE_NAME..."
+    docker rmi "$IMAGE_NAME" || true
+fi
+
+# ---------------------------------------
+# Interactive Docker cleanup
+# ---------------------------------------
+echo "Do you want to purge ALL Docker images, containers, volumes, and build cache? (y/N)"
+read -r CLEAN_DOCKER
+
+if [[ "$CLEAN_DOCKER" =~ ^[Yy]$ ]]; then
+    echo "Stopping all running containers..."
+    docker ps -q | xargs -r docker stop
+
+    echo "Removing all containers..."
+    docker ps -aq | xargs -r docker rm -f
+
+    echo "Removing all images..."
+    docker images -aq | xargs -r docker rmi -f
+
+    echo "Removing all volumes..."
+    docker volume ls -q | xargs -r docker volume rm -f
+
+    echo "Pruning all build cache..."
+    docker builder prune -af
+
+    echo "Docker cleaned completely!"
+else
+    echo "Skipping Docker cleanup."
+fi
+
+echo "Building Docker image '$IMAGE_NAME' with UID=$HOST_UID GID=$HOST_GID..."
+
+# -------------------------------
+# Build the Docker image
+# -------------------------------
+docker build \
+    --build-arg USERNAME="$USERNAME" \
+    --build-arg UID="$HOST_UID" \
+    --build-arg GID="$HOST_GID" \
+    -t "$IMAGE_NAME" \
+    "$BUILD_CONTEXT"
+
+echo "Docker image '$IMAGE_NAME' built successfully!"
+

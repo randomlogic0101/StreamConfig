@@ -1,0 +1,141 @@
+# ----------------------------
+# Arch Linux EXWM Full Container
+# ----------------------------
+FROM archlinux:latest
+
+# ----------------------------
+# Build arguments for host UID/GID
+# ----------------------------
+ARG USERNAME
+ARG UID
+ARG GID
+
+ENV TERM=xterm-256color
+ENV EMACS_EXWM=1
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+
+# ----------------------------
+# System update and base packages
+# ----------------------------
+RUN pacman -Syu --noconfirm
+
+RUN pacman -S --noconfirm \
+        xorg-xhost \
+	vlc \
+	vlc-plugins-all \
+        ffmpeg4.4 \
+        mesa \
+        libv4l \
+	glibc-locales \
+	base-devel \
+        sudo \
+        git \
+        curl \
+        wget \
+        vim \
+        bash-completion \
+        tar \
+        xz \
+        zip \
+        unzip \
+        zsh \
+        tmux \
+        dialog \
+        xorg-server-xvfb \
+        xorg-xauth \
+        xorg-xdpyinfo \
+        xdotool \
+        wmctrl \
+        xclip \
+        alsa-utils \
+        alsa-lib \
+        alsa-plugins \
+        pipewire \
+        pipewire-alsa \
+        pipewire-pulse \
+        pipewire-jack \
+        mpv \
+	yt-dlp \
+        firefox \
+        gst-plugins-base \
+        gst-plugins-good \
+        gst-plugins-bad \
+        gst-plugins-ugly \
+        gst-libav \
+        gnupg \
+        emacs \
+	x11vnc \
+	xterm \
+	xorg-xclock \
+    && pacman -Sc --noconfirm
+
+# ----------------------------
+# Fallback fonts incase linking to the host fonts fails 
+# ----------------------------
+RUN pacman -S --noconfirm \
+    fontconfig \
+    freetype2 \
+    noto-fonts \
+    noto-fonts-emoji \
+    noto-fonts-cjk \
+    ttf-dejavu \
+    ttf-liberation \
+    ttf-jetbrains-mono \
+    ttf-fira-code \
+    unzip \
+    && pacman -Sc --noconfirm
+
+# ----------------------------
+# Create host-matched user
+# ----------------------------
+RUN groupadd -g $GID $USERNAME && \
+    useradd -m -u $UID -g $GID -s /bin/bash $USERNAME
+
+# Generate en_US.UTF-8 locale
+RUN sed -i 's/#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+
+EXPOSE 8080
+
+# ----------------------------
+# Setup Emacs ELPA GPG directory
+# ----------------------------
+#RUN mkdir -p /home/$USERNAME/.emacs.d/elpa/gnupg && \
+#    chmod 700 /home/$USERNAME/.emacs.d/elpa/gnupg && \
+#    gpg --list-keys || true
+
+# ----------------------------
+# Copy entrypoint
+# ----------------------------
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# ----------------------------
+# Ensure container font directories exist
+# ----------------------------
+RUN mkdir -p \
+      /usr/share/fonts \
+      /usr/local/share/fonts \
+      /home/$USERNAME/.local/share/fonts \
+      /home/$USERNAME/.fonts
+      
+RUN mkdir -p $HOME/.cache/fontconfig
+
+RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
+
+# ----------------------------
+# Switch to user for user-level setup
+# ----------------------------
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+# Rebuild font cache
+RUN fc-cache -fv
+
+# ----------------------------
+# Default entrypoint
+# ----------------------------
+ENTRYPOINT ["/entrypoint.sh"]
+

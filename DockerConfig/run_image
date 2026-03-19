@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -e
+
+IMAGE_NAME="exwm-virtual"
+CONTAINER_NAME="exwm_run"
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+USERNAME="$USER"
+
+EMACS_DIR="$HOME/.emacs.d"
+DOTFILES_DIR="$HOME/.dotfiles"
+
+# -------------------------------
+# Stop and remove any running containers from this image
+# -------------------------------
+echo "Checking for running containers from image '$IMAGE_NAME'..."
+RUNNING_CONTAINERS=$(docker ps -q --filter "ancestor=$IMAGE_NAME")
+
+if [ -n "$RUNNING_CONTAINERS" ]; then
+    echo "Found running containers: $RUNNING_CONTAINERS"
+    echo "Stopping and removing them..."
+    docker rm -f $RUNNING_CONTAINERS
+else
+    echo "No running containers from this image."
+fi
+
+# -------------------------------
+# Clean up old containers
+# -------------------------------
+#docker ps -aq --filter "ancestor=$IMAGE_NAME" | xargs -r docker rm -f
+#docker images -f "dangling=true" -q | xargs -r docker rmi -f
+#docker builder prune -af
+
+# -------------------------------
+# Run container in background
+# -------------------------------
+    #-v /nix/store:/nix/store:ro \
+    #-v /etc/fonts:/etc/fonts:ro \
+docker run -d --rm \
+    -v $HOME/.local/share/fonts:/home/$USERNAME/.local/share/fonts:ro \
+    -v "$EMACS_DIR":/home/$USERNAME/.emacs.d \
+    -v "$DOTFILES_DIR":/home/$USERNAME/.dotfiles \
+    -v /usr/share/fonts:/usr/share/fonts:ro \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -e DISPLAY=:99 \
+    -e USERNAME=$USERNAME \
+    -p 5900:5900 \
+    -p 8080:8080 \
+    --name $CONTAINER_NAME \
+    $IMAGE_NAME &
+CONTAINER_PID=$!
+
+sleep 5
+
+echo "Docker image started at PID: $CONTAINER_PID"
+
+echo "Waiting for VNC server to start on port 5900..."
+
+# loop until ss sees a listening socket on port 5900
+until ss -tln | grep -q ":5900"; do
+    echo -n "."
+    sleep 0.2
+done
+
+echo "VNC server is up!"
+
+
+# -------------------------------
+# Launch host VNC viewer
+# -------------------------------
+# This is unusable at the moment
+# TODO figure out scaling
+#vncviewer -RemoteResize -Maximize -FullColor -FullScreen -DesktopSize 2560x1600 localhost::5900
+
+
+wait $CONTAINER_PID
+
