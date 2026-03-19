@@ -46,10 +46,9 @@
 
 (defun my/toggle-tool-and-menu-bars ()
   "Toggle the visibility of the tool‑bar and the menu‑bar.
-
-If either the tool‑bar or the menu‑bar is currently shown, both are
-hidden; otherwise both are shown.  The command also prints a short
-message in the echo area so you know the new state."
+   If either the tool‑bar or the menu‑bar is currently shown, both are
+   hidden; otherwise both are shown.  The command also prints a short
+   message in the echo area so you know the new state."
   (interactive)
   (let* ((tool-visible   (frame-parameter nil 'tool-bar-lines))
          (menu-visible   (frame-parameter nil 'menu-bar-lines))
@@ -62,7 +61,73 @@ message in the echo area so you know the new state."
              (if (= new-visibility 1) "Enabled" "Disabled")
              (if (= new-visibility 1) "tool‑bar & menu‑bar" "tool‑bar & menu‑bar"))))
 
+;; TODO add these names to the exwm buffers
+(defvar my/layout-buffers
+  '(:left "*Left-Buffer*"
+          :top-right "*Top-Right*"
+          :bottom-right "*Bottom-Right*")
+  "Named buffers for custom layout.")
+
+;; This mimics what happens in exwm, but runs if not in exwm
+
+(defun my/setup-custom-layout ()
+  "Set up a 3-pane layout with named buffers.
+   Only runs if $EXWM is not 1."
+  (interactive)
+  (unless (string= (getenv "EXWM") "1")
+    (delete-other-windows)  ;; start clean
+
+    ;; Split left/right
+    (let ((left-width (/ (window-total-width) 2)))
+      (let ((left (selected-window))
+            (right (split-window-right left-width)))
+        
+        ;; Left buffer
+        (select-window left)
+        (switch-to-buffer (get-buffer-create (plist-get my/layout-buffers :left)))
+
+        ;; Right: split top/bottom
+        (select-window right)
+        (let ((top-right (selected-window))
+              (bottom-right (split-window-below)))
+          
+          ;; Top-right buffer
+          (select-window top-right)
+          (switch-to-buffer (get-buffer-create (plist-get my/layout-buffers :top-right)))
+
+          ;; Bottom-right buffer
+          (select-window bottom-right)
+          (switch-to-buffer (get-buffer-create (plist-get my/layout-buffers :bottom-right)))
+
+          ;; Start shell in bottom-right
+          (shell (current-buffer))))))
+  ;; Go back to left buffer at the end
+  (select-window (get-buffer-window (plist-get my/layout-buffers :left))))
+
+;; Jump to buffer functions
+(defun my/jump-to-left-buffer ()
+  (interactive)
+  (let ((buf (get-buffer (plist-get my/layout-buffers :left))))
+    (when buf (switch-to-buffer buf))))
+
+(defun my/jump-to-top-right-buffer ()
+  (interactive)
+  (let ((buf (get-buffer (plist-get my/layout-buffers :top-right))))
+    (when buf (switch-to-buffer buf))))
+
+(defun my/jump-to-bottom-right-buffer ()
+  (interactive)
+  (let ((buf (get-buffer (plist-get my/layout-buffers :bottom-right))))
+    (when buf (switch-to-buffer buf))))
+
+(global-set-key (kbd "C-c 1") #'my/jump-to-left-buffer)
+(global-set-key (kbd "C-c 2") #'my/jump-to-top-right-buffer)
+(global-set-key (kbd "C-c 3") #'my/jump-to-bottom-right-buffer)
 (global-set-key (kbd "C-c t") #'my/toggle-tool-and-menu-bars)
+(global-set-key (kbd "C-c l") #'my/setup-custom-layout)
+
+;; Set an after load hook to setup the layout
+(add-hook 'emacs-startup-hook #'my/setup-custom-layout)
 
 (provide 'core-ui)
 ;;; core-ui.el ends here
