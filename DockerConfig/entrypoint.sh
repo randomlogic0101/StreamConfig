@@ -19,12 +19,13 @@ FONT_DIRS=(
 # Maybe this will fix the font issue. This is a pain...
 echo "Rebuilding font cache from host..."
 for dir in "${FONT_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        echo "Caching fonts in: $dir"
-        fc-cache -fv "$dir"
-    else
+    if [[ ! -d $dir ]]; then
         echo "Skipping non-existent directory: $dir"
+	continue
     fi
+
+    echo "Caching fonts in: $dir"
+    fc-cache -fv "$dir"
 done
 
 # -----------------------------

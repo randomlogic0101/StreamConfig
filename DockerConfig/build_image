@@ -12,8 +12,8 @@ HOST_GID=$(id -g)
 USERNAME=$(id -un)
 
 # Useful mounts
-EMACS_DIR="$HOME/.emacs.d"
-DOTFILES_DIR="$HOME/.dotfiles"
+EMACS_DIR=~/.emacs.d
+DOTFILES_DIR=~/.dotfiles
 PIPEWIRE_RUNTIME="/run/user/$HOST_UID"
 X11_SOCKET="/tmp/.X11-unix"
 DEV_SND="/dev/snd"
@@ -23,7 +23,7 @@ DEV_SND="/dev/snd"
 # -------------------------------
 EXISTING_CONTAINER=$(docker ps -q -f "name=$CONTAINER_NAME")
 
-if [ -n "$EXISTING_CONTAINER" ]; then
+if [[ -n $EXISTING_CONTAINER ]]; then
     echo "Stopping running container $CONTAINER_NAME ($EXISTING_CONTAINER)..."
     docker stop "$EXISTING_CONTAINER"
 fi
