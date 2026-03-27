@@ -6,7 +6,7 @@
   (setq inhibit-startup-message t
         vc-follow-symlinks t
         indent-tabs-mode nil
-        tab-width 2)
+        tab-width 2)  ;; <- 4 would be a more standard set and leads to better readability
   (fset 'yes-or-no-p 'y-or-n-p)
   :config
   (save-place-mode 1)
@@ -34,6 +34,8 @@
     (setq display-line-numbers-type 'relative)))
 
 (add-hook 'after-change-major-mode-hook #'my/relative-line-numbers)
+;; this may also be on hook to prog mode, or always active
+;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 ;; Theme
 (use-package doom-themes
@@ -52,7 +54,10 @@
   (interactive)
   (let* ((tool-visible   (frame-parameter nil 'tool-bar-lines))
          (menu-visible   (frame-parameter nil 'menu-bar-lines))
-         (new-visibility (if (or (= tool-visible 1) (= menu-visible 1)) 0 1)))
+         (new-visibility (if (or (= tool-visible 1)
+                                 (= menu-visible 1))
+                             0 1))) ;; for better readability in lisps i would keep or statements bellow each other
+
     ;; Apply the same value to both parameters
     (modify-frame-parameters nil
                              `((tool-bar-lines . ,new-visibility)
@@ -79,18 +84,18 @@
 
     ;; Split left/right
     (let ((left-width (/ (window-total-width) 2)))
-      (let ((left (selected-window))
+      (let ((left (selected-window))  ;; why is this let nested and not declared with the one above?
             (right (split-window-right left-width)))
-        
+
         ;; Left buffer
         (select-window left)
         (switch-to-buffer (get-buffer-create (plist-get my/layout-buffers :left)))
 
         ;; Right: split top/bottom
         (select-window right)
-        (let ((top-right (selected-window))
+        (let ((top-right (selected-window)) ;; this as well could be in the starting let
               (bottom-right (split-window-below)))
-          
+
           ;; Top-right buffer
           (select-window top-right)
           (switch-to-buffer (get-buffer-create (plist-get my/layout-buffers :top-right)))
