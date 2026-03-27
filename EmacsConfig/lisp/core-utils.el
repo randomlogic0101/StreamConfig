@@ -39,7 +39,7 @@ If buffer is read-only, mimic terminal clear by pushing content off screen."
           (insert "\n\n") ;; create space to scroll
           (recenter 0)
           (message "Buffer copied; view cleared (read-only buffer)."))
-      
+
       ;; Writable buffer: erase
       (let ((inhibit-read-only t))
         (erase-buffer)

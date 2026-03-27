@@ -5,6 +5,12 @@
           (lambda ()
             (setq gc-cons-threshold (* 50 1000 1000))))
 
+;; this would clean up files and remove unintended whitespace in files
+(add-hook  'before-save-hook              'delete-trailing-whitespace      )
+;; this option would mark trailing whitespace anfd show it, dave has this in his vim as well
+(setq-default show-trailing-whitespace t)
+
+
 (require 'package)
 
 (setq package-archives
@@ -47,4 +53,3 @@
 
 (provide 'init)
 ;;; init.el ends here
-
