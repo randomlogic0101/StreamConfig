@@ -72,7 +72,7 @@ RUN pacman -S --noconfirm \
     && pacman -Sc --noconfirm
 
 # ----------------------------
-# Fallback fonts incase linking to the host fonts fails 
+# Fallback fonts incase linking to the host fonts fails
 # ----------------------------
 RUN pacman -S --noconfirm \
     fontconfig \
@@ -120,7 +120,7 @@ RUN mkdir -p \
       /usr/local/share/fonts \
       /home/$USERNAME/.local/share/fonts \
       /home/$USERNAME/.fonts
-      
+
 RUN mkdir -p $HOME/.cache/fontconfig
 
 RUN chown -R ${USERNAME}:${USERNAME} /home/${USERNAME}
