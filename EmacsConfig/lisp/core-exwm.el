@@ -18,7 +18,7 @@
 ;; ---------------------------------------
 (when my/exwm-enabled
   ;; Force minibuffer in main frame
-  (setq enable-recursive-minibuffers t)
+  (setq enable-recursive-minibuffers t) ;; this should always be on, not just in exwm
   (setq initial-frame-alist '((minibuffer . t)))
   (setq minibuffer-frame nil)
 
@@ -49,7 +49,7 @@
             ([?\C-+] . text-scale-increase)
             ([?\C--] . text-scale-decrease)
             ;; App launchers
-            ([?\C-c ?f] . my/exwm-firefox)
+            ([?\C-c ?f] . my/exwm-firefox) ;; not icecat, based on gnu mozzila fork gnuzilla?
             ([?\C-c ?m] . my/exwm-mpv)
             ;; New EXWM window
             ([?\C-c ?n] . my/exwm-new-window)
@@ -135,7 +135,7 @@ BUFFER-OR-COMMAND can be a buffer (converted to EXWM) or a COMMAND string to lau
 
   ;; Launchers
   (defun my/exwm-firefox ()
-    "Launch or adopt Firefox."
+    "Launch or adopt Firefox."  ;; icecat, see above
     (interactive)
     (my/exwm-adopt-buffer "firefox"))
 
@@ -170,6 +170,7 @@ BUFFER-OR-COMMAND can be a buffer (converted to EXWM) or a COMMAND string to lau
       (with-current-buffer buf
         (my/exwm-place-in-current-window)
         (exwm-input-release-keyboard)))))
+;;; just a thought, could a keybind to open ansi-term be of use?
 
   ;; ---------------------------------------
   ;; Startup layout: left full-height, right split vertically
@@ -206,4 +207,3 @@ BUFFER-OR-COMMAND can be a buffer (converted to EXWM) or a COMMAND string to lau
      (kill-emacs))))
 
 (provide 'core-exwm)
-
