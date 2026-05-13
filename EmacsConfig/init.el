@@ -5,12 +5,6 @@
           (lambda ()
             (setq gc-cons-threshold (* 50 1000 1000))))
 
-;; this would clean up files and remove unintended whitespace in files
-(add-hook  'before-save-hook              'delete-trailing-whitespace      )
-;; this option would mark trailing whitespace anfd show it, dave has this in his vim as well
-(setq-default show-trailing-whitespace t)
-
-
 (require 'package)
 
 (setq package-archives
@@ -72,7 +66,7 @@
   :init
   ;; Add variables BEFORE initialization
   (setq exec-path-from-shell-variables
-        '("PATH" "MANPATH" "AP2" "APCMECH" "PHY" "CURRENT_YEAR"))
+        '("PATH" "MANPATH"))
   :config
   (exec-path-from-shell-initialize))
 
@@ -86,6 +80,7 @@
 
 (provide 'init)
 ;;; init.el ends here
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
